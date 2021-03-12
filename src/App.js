@@ -1,25 +1,67 @@
-import logo from './logo.svg';
+import React, { useState, useEffect } from 'react'
 import './App.css';
+const fetch = require("node-fetch");
 
-function App() {
+function App(){
+  const [chat, setChat] = useState([])
+  const [search, setSearch] = useState("")
+  const [status, setStatus] = useState("")
+
+  const defaultFetch = () => {
+    setStatus("Chat")
+    fetch(`/api/data`)
+      .then(response => response.json())
+      .then(chat => {
+        setChat(chat)
+      });
+  }
+
+  useEffect(() => {
+    defaultFetch()
+  }, [])
+
+  const Search = (e) => {
+    e.preventDefault()
+    if(search === ""){
+      defaultFetch()
+    } else {
+      setStatus("Search Result")
+      fetch(`/api/search?search=${encodeURIComponent(search)}`)
+        .then(response => response.json())
+        .then(chat => {
+          setChat(chat)
+        });
+    }
+  }
+
+  const playerChat = (message) => {
+    setStatus("Player Messages")
+    fetch(`/api/player?player=${encodeURIComponent(message.player)}`)
+        .then(response => response.json())
+        .then(chat => {
+          setChat(chat)
+        });
+  }
+
   return (
     <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+      <h3>Search Chat</h3>
+      <form onSubmit={Search}>
+        <input type="text" value={search} onChange={(e)=>{
+          setSearch(e.target.value)
+        }}/>
+      </form>
+      <h4>{status}</h4>
+      <div className="">
+        {
+          chat.map((message) => {
+            return <p className='' onClick={()=>playerChat(message)}>{message.text}</p>
+          })
+          
+        }
+      </div>
     </div>
   );
-}
 
-export default App;
+}
+export default App
